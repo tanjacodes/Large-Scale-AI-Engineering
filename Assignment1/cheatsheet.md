@@ -24,7 +24,8 @@ srun --account=a06 --time=1:00 -p debug --pty bash -c 'i=1; while [ $i -le 60 ];
 ```
 
 ## Interactive session
-define environment
+`--pty` starts an interactive session
+define environment through --environment=...
 ```
 srun --account=a06 --container-writable --environment=my_env -p debug --pty bash
 ```
@@ -60,7 +61,7 @@ mounts = ["/capstor", "/iopsstor", "/users"]
 
 ```
 
-### Batch Header
+## Batch Header
 job-name: name of the job, so if you check for squeue --me, you can identify your job by name
 time: in example 1 hour
 output: path to output file
@@ -81,4 +82,26 @@ error: path to error file, to get error outputs
 ```bash
 quota        # check usage quota (on ela)
 nvidia-smi   # see GPUs
+```
+
+## Docker images
+
+  ```
+    podman build -t my_pytorch:24.11-py3 .
+  ```
+See the image in your local container registry.
+    ```
+    podman images
+    ```
+
+## Varia 1
+Get more info on job using it's ID: 123456 (in this example)
+
+For number of CPUs:
+```
+scontrol show job 123456
+```
+For number of GPUs:
+```
+   scontrol show nodes nid001234
 ```
