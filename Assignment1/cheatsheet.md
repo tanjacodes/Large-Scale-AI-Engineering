@@ -36,6 +36,16 @@ srun --account=a06 --container-writable --environment=my_env -p debug --pty bash
 sbatch my_script.sh  # submit job
 ```
 
+### Container Build
+
+Get interactive shell with container support, build container with podman, convert to enroot format.
+
+```bash
+srun --container-writable -p debug --pty bash
+podman build -t my_image:tag .  # Creates the actual container image
+enroot import -o ~/scratch/my_image.sqsh podman://my_image:tag
+```
+
 ## TOML Config
 
 ```toml
@@ -47,3 +57,28 @@ image = "~/scratch/my_image.sqsh"
 # - iopsstor: High-IOPS storage for performance-sensitive workloads
 # - users: Home directories and user data
 mounts = ["/capstor", "/iopsstor", "/users"]
+
+```
+
+### Batch Header
+job-name: name of the job, so if you check for squeue --me, you can identify your job by name
+time: in example 1 hour
+output: path to output file
+error: path to error file, to get error outputs
+```bash
+#!/bin/bash
+#SBATCH --job-name=name
+#SBATCH --nodes=1
+#SBATCH --time=01:00:00
+#SBATCH --partition=debug
+#SBATCH --environment=my_env
+#SBATCH --output=~/scratch/job.out
+#SBATCH --error=~/scratch/job.err
+```
+
+## Quick Checks
+
+```bash
+quota        # check usage quota (on ela)
+nvidia-smi   # see GPUs
+```
