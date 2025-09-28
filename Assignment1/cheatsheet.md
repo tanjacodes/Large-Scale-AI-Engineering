@@ -3,14 +3,16 @@
 ## Check available partitions and their nodes.
 -a: show all partitions
 -l: long format
-```console
+```
 sinfo -a -l
 ```
 ## Shows your own jobs
-``` squeue --me
+```
+squeue --me
 ```
 ## Repeatedely execute a command with watch
-``` watch squeue --me
+```
+watch squeue --me
 ```
 ## Running command using srun
 `--time=01:00` specifies the runtime (in this case 1 minute).
