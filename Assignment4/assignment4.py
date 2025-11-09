@@ -128,14 +128,16 @@ class FullColumnParallelLinear(nn.Module):
         check(X, (local_bsz, self.in_dim))
         
         # distribute X in the forward pass and collect the errors from all ranks in the backward pass
-        BroadcastParallel.apply(X)# TODO
+        dist.broadcast(X, src=0)# TODO
         
         # Batched matrix multiplication
         local_out = torch.einsum("bi,ij->bj", X, self.W).contiguous()
         check(local_out, (local_bsz, self.local_out_dim))
         
         # Collect the outputs of the linear map in the forward pass and keep only the rank specific errors in the backward pass. 
-        out =  GatherParallel.apply(local_out)         
+        out_list = [torch.zeros_like(local_out) for _ in range(self.world_size)]
+        dist.all_gather(out_list, local_out)
+        out = torch.cat(out_list, dim=1)        
         check(out, (local_bsz, self.out_dim))
         
         return out
