@@ -51,8 +51,8 @@ def main(pp: int,
     device_id = torch.device(f"cuda:{local_rank}")
 
     # Q2: Assert args
-    assert True # TODO
-    assert True # TODO
+    assert number_of_layers % pp == 0 # TODO
+    assert global_batch_size // micro_batch_size >= pp&& global_batch_size % micro_batch_size == 0 # TODO
     
     number_of_microbatches = global_batch_size // micro_batch_size
 
