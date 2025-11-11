@@ -52,7 +52,8 @@ def main(pp: int,
 
     # Q2: Assert args
     assert number_of_layers % pp == 0 # TODO
-    assert global_batch_size // micro_batch_size >= pp&& global_batch_size % micro_batch_size == 0 # TODO
+	## oder eifahc lgobal_batch_size // micro_Batch_size > 1
+    assert global_batch_size // micro_batch_size >= pp && global_batch_size % micro_batch_size == 0 # TODO
     
     number_of_microbatches = global_batch_size // micro_batch_size
 
@@ -73,16 +74,16 @@ def main(pp: int,
 
     for _ in range(number_of_microbatches):
         # Q4: 1. Fetch a batch of data from the dataloader
-        # TODO
+        microbatch = next(train_dl_iterator)# TODO
         # 2. Move it to the GPU
-        # TODO
+        microbatch = microbatch.cuda(non_blocking = True)# TODO
         # 3. Compute the forward pass
-        # TODO
+        output = model(microbatch)# TODO
 
 
         output_tensors_no_pp.append(output.detach().clone()) # NOTE(tj.solergibert) To check PP vs NON-PP outputs!
         # 4. Compute the backward pass
-        # TODO
+        loss.backward()# TODO
         
     
     ################################################### 

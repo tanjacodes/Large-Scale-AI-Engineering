@@ -51,9 +51,22 @@ def distribute_layers(num_layers: int, pp_rank: int, pp_world_size: int) -> List
         Distribute model layers across GPUs as evenly as possible.
         Returns a list with the layer indices that should be processed by this GPU.
         """
-        # TODO
-        layers_in_current_stage = [0, 1, 2, 3] 
-        return layers_in_current_stage
+    # Compute how many layers per stage
+    layers_per_stage = num_layers // pp_world_size
+    remainder = num_layers % pp_world_size
+
+    # Handle cases where layers cannot be evenly divided
+    # First `remainder` stages get one extra layer
+    if pp_rank < remainder:
+        start_idx = pp_rank * (layers_per_stage + 1)
+        end_idx = start_idx + (layers_per_stage + 1)
+    else:
+        start_idx = remainder * (layers_per_stage + 1) + (pp_rank - remainder) * layers_per_stage
+        end_idx = start_idx + layers_per_stage
+
+    layers_in_current_stage = list(range(start_idx, end_idx))
+	# TODO
+    return layers_in_current_stage
 
 class PipelineStage(nn.Module):
     """

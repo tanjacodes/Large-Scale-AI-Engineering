@@ -13,4 +13,11 @@ In order to solve this we could define seeds at different levels such that we ca
 ## Question 3
 The size of the tensors will be:
 
-(micro_batch_size, sequence_length, hidden_size) 
+(micro_batch_size, sequence_length, hidden_size)
+
+
+
+
+## Question 6
+
+Only the first pipeline rank (rank 0) requires the training dataloader, because it’s the only one that directly consumes input data. All other ranks receive intermediate activations from the previous stage. 
