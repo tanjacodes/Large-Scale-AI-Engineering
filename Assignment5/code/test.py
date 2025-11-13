@@ -70,7 +70,7 @@ def main(pp: int,
     
     # Q3: Model definition & shape of the intermidiate tensors
     model = MyDummyModel(number_of_layers, hidden_size, intermediate_size).cuda()
-    tensor_shapes = (True, True, True) # TODO
+    tensor_shapes = (micro_batch_size, sequence_length, hidden_size) # TODO
 
     for _ in range(number_of_microbatches):
         # Q4: 1. Fetch a batch of data from the dataloader
@@ -83,7 +83,7 @@ def main(pp: int,
 
         output_tensors_no_pp.append(output.detach().clone()) # NOTE(tj.solergibert) To check PP vs NON-PP outputs!
         # 4. Compute the backward pass
-        loss.backward()# TODO
+        output.mean()# TODO
         
     
     ################################################### 
@@ -108,8 +108,9 @@ def main(pp: int,
     for _ in range(number_of_microbatches): # All forward passes
         input_tensor = pipeline_communicate(operation='recv_forward', pp_process_group=device_mesh["pp"].get_group(), shapes=tensor_shapes)
         # Q8: 1. Fetch a batch from the dataloader if needed
-        if rank == 0: input_tensor = next(train_dl_iterator)# TODO
-        # 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
+	if device_mesh["pp"].get_local_rank() == 0: input_tensor = next(train_dl_iterator)# TODO
+        
+	# 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
         input_tensor = input_tensor.cuda(non_blocking = true)# TODO
         # 3. Compute the forward pass
         output = model(input_tensor)# TODO
@@ -119,8 +120,8 @@ def main(pp: int,
         
         # Compute loss on the last stage
         # 4. Compute the loss in the required stage
-        if rank == dist.get_world_size(pp_process_group): # TODO
-            output = loss.backward() # TODO
+        if rank == dist.get_world_size(device_mesh["pp"].get_group()): # TODO
+            output.mean().backward() # TODO
 
         # Save tensors to reconstruct computation graph during backward pass
         input_tensors.append(input_tensor)
