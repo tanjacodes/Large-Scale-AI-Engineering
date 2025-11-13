@@ -10,14 +10,4 @@ For the LayerNorm, biases or embeddings that reamin replicated, all ranks must s
 In order to solve this we could define seeds at different levels such that we can reproduce the seed whenever needed and such that we can use a different seed when needed.   
 
 
-## Question 3
-The size of the tensors will be:
 
-(micro_batch_size, sequence_length, hidden_size)
-
-
-
-
-## Question 6
-
-Only the first pipeline rank (rank 0) requires the training dataloader, because it’s the only one that directly consumes input data. All other ranks receive intermediate activations from the previous stage. 
