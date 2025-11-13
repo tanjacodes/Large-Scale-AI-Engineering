@@ -19,21 +19,21 @@ def pipeline_communicate(operation, pp_process_group, tensor=None, shapes=None):
     pp_is_last_stage = pp_rank == dist.get_world_size(pp_process_group) - 1
     
     if operation == 'recv_forward':
-        if True: return None # TODO
+        if pp_is_first_stage: return None # TODO
         tensor = torch.empty(shapes, requires_grad=True, device="cuda")
         src = dist.get_global_rank(pp_process_group, pp_prev_rank)
     
     elif operation == 'send_forward':
-        if True: return # TODO
+        if pp_is_last_stage: return # TODO
         dest = dist.get_global_rank(pp_process_group, pp_next_rank)
     
     elif operation == 'recv_backward':
-        if True: return None # TODO
+        if pp_is_last_stage: return None # TODO
         tensor = torch.empty(shapes, requires_grad=True, device="cuda")
         src = dist.get_global_rank(pp_process_group, pp_next_rank)
     
     elif operation == 'send_backward':
-        if True: return # TODO
+        if pp_us_first_stage: return # TODO
         dest = dist.get_global_rank(pp_process_group, pp_prev_rank)
     
     print_shapes = shapes if shapes else tensor.shape
