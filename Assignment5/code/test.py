@@ -108,19 +108,19 @@ def main(pp: int,
     for _ in range(number_of_microbatches): # All forward passes
         input_tensor = pipeline_communicate(operation='recv_forward', pp_process_group=device_mesh["pp"].get_group(), shapes=tensor_shapes)
         # Q8: 1. Fetch a batch from the dataloader if needed
-        if rank == 0: microbatch = next(train_dl_iterator)# TODO
+        if rank == 0: input_tensor = next(train_dl_iterator)# TODO
         # 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
-        if rank  == 0: microbatch = microbatch.# TODO
+        input_tensor = input_tensor.cuda(non_blocking = true)# TODO
         # 3. Compute the forward pass
-        output = model(microbatch)# TODO
+        output = model(input_tensor)# TODO
         pipeline_communicate(operation='send_forward', pp_process_group=device_mesh["pp"].get_group(), tensor=output)
         
         output_tensors_pp.append(output.detach().clone()) # NOTE(tj.solergibert) To check PP vs NON-PP outputs!
         
         # Compute loss on the last stage
         # 4. Compute the loss in the required stage
-        if True: # TODO
-            output = True # TODO
+        if rank == dist.get_world_size(pp_process_group): # TODO
+            output = loss.backward() # TODO
 
         # Save tensors to reconstruct computation graph during backward pass
         input_tensors.append(input_tensor)
@@ -143,8 +143,8 @@ def main(pp: int,
 
     # Q10: Check the grads of the required layers. Remember that we store the `layer_idx` in each layer of the model
     for pp_stage_layer in model_stage.pp_stage_layers:
-        torch.testing.assert_close() # TODO
-        torch.testing.assert_close() # TODO
+        torch.testing.assert_close(model.layers[pp_stage_layer.layer_idx].linear.weight.grad, pp_stage_layer.linear.weight.grad, rtol=1e-3, atol=1e-3) # TODO
+        torch.testing.assert_close(model.layers[layer_idx].linear.bias.grad, pp_stage_layer.linear.bias.grad, rtol=1e-3, atol=1e-3) # TODO
     ################################################### 
     torch.cuda.synchronize()
     dist.barrier()
