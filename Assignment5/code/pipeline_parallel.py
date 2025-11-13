@@ -47,12 +47,12 @@ def pipeline_communicate(operation, pp_process_group, tensor=None, shapes=None):
 
 # Q5: Develop this function
 def distribute_layers(num_layers: int, pp_rank: int, pp_world_size: int) -> List:
-        """
-        Distribute model layers across GPUs as evenly as possible.
-        Returns a list with the layer indices that should be processed by this GPU.
-        """
+    """
+    Distribute model layers across GPUs as evenly as possible.
+    Returns a list with the layer indices that should be processed by this GPU.
+    """
     # Compute how many layers per stage
-    layers_per_stage = num_layers // pp_world_size
+	layers_per_stage = num_layers // pp_world_size
     remainder = num_layers % pp_world_size
 
     # Handle cases where layers cannot be evenly divided
