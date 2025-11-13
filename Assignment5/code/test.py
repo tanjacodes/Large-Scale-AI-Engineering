@@ -97,7 +97,7 @@ def main(pp: int,
     model_stage = PipelineStage(model, number_of_layers, device_mesh["pp"].get_local_rank(), pp).cuda()
 
     # Q6: Which ranks require the training dataloader?
-    if True: # TODO
+    if rank == 0 : # TODO
         train_dl_iterator = iter(input)
     else:
         train_dl_iterator = None
@@ -108,11 +108,11 @@ def main(pp: int,
     for _ in range(number_of_microbatches): # All forward passes
         input_tensor = pipeline_communicate(operation='recv_forward', pp_process_group=device_mesh["pp"].get_group(), shapes=tensor_shapes)
         # Q8: 1. Fetch a batch from the dataloader if needed
-        # TODO
+        if rank == 0: microbatch = next(train_dl_iterator)# TODO
         # 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
-        # TODO
+        if rank  == 0: microbatch = microbatch.# TODO
         # 3. Compute the forward pass
-        # TODO
+        output = model(microbatch)# TODO
         pipeline_communicate(operation='send_forward', pp_process_group=device_mesh["pp"].get_group(), tensor=output)
         
         output_tensors_pp.append(output.detach().clone()) # NOTE(tj.solergibert) To check PP vs NON-PP outputs!
