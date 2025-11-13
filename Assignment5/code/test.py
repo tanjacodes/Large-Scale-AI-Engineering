@@ -53,7 +53,7 @@ def main(pp: int,
     # Q2: Assert args
     assert number_of_layers % pp == 0 # TODO
 	## oder eifahc lgobal_batch_size // micro_Batch_size > 1
-    assert global_batch_size // micro_batch_size >= pp && global_batch_size % micro_batch_size == 0 # TODO
+    assert global_batch_size // micro_batch_size >= pp and global_batch_size % micro_batch_size == 0 # TODO
     
     number_of_microbatches = global_batch_size // micro_batch_size
 
