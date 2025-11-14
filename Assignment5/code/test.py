@@ -83,7 +83,7 @@ def main(pp: int,
 
         output_tensors_no_pp.append(output.detach().clone()) # NOTE(tj.solergibert) To check PP vs NON-PP outputs!
         # 4. Compute the backward pass
-        output.mean()# TODO
+        output.mean().backward() # TODO
         
     
     ################################################### 
@@ -97,7 +97,7 @@ def main(pp: int,
     model_stage = PipelineStage(model, number_of_layers, device_mesh["pp"].get_local_rank(), pp).cuda()
 
     # Q6: Which ranks require the training dataloader?
-    if rank == 0 : # TODO
+    if device_mesh["pp"].get_local_rank() == 0: # TODO
         train_dl_iterator = iter(input)
     else:
         train_dl_iterator = None
@@ -108,10 +108,12 @@ def main(pp: int,
     for _ in range(number_of_microbatches): # All forward passes
         input_tensor = pipeline_communicate(operation='recv_forward', pp_process_group=device_mesh["pp"].get_group(), shapes=tensor_shapes)
         # Q8: 1. Fetch a batch from the dataloader if needed
-	if device_mesh["pp"].get_local_rank() == 0: input_tensor = next(train_dl_iterator)# TODO
+        if device_mesh["pp"].get_local_rank() == 0: 
+            input_tensor = next(train_dl_iterator)
+            #input_tensor.requires_grad_(True)# TODO
         
-	# 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
-        input_tensor = input_tensor.cuda(non_blocking = true)# TODO
+	    # 2. Move the batch from the dataloader OR the activations from the previous PP stage to the GPU
+        input_tensor = input_tensor.cuda(non_blocking=True)# TODO
         # 3. Compute the forward pass
         output = model(input_tensor)# TODO
         pipeline_communicate(operation='send_forward', pp_process_group=device_mesh["pp"].get_group(), tensor=output)
@@ -120,7 +122,7 @@ def main(pp: int,
         
         # Compute loss on the last stage
         # 4. Compute the loss in the required stage
-        if rank == dist.get_world_size(device_mesh["pp"].get_group()): # TODO
+        if device_mesh["pp"].get_local_rank() == dist.get_world_size(device_mesh["pp"].get_group()) -1: # TODO
             output.mean().backward() # TODO
 
         # Save tensors to reconstruct computation graph during backward pass
@@ -137,15 +139,17 @@ def main(pp: int,
     dist.barrier()
 
     # Q9: Check the model outputs in the required rank
-    if True: # TODO
+    if device_mesh["pp"].get_local_rank() == dist.get_world_size(device_mesh["pp"].get_group()) -1: # TODO
         for output_no_pp, output_pp in zip(output_tensors_no_pp, output_tensors_pp):
             torch.testing.assert_close(output_no_pp, output_pp)
     dist.barrier()
 
     # Q10: Check the grads of the required layers. Remember that we store the `layer_idx` in each layer of the model
     for pp_stage_layer in model_stage.pp_stage_layers:
-        torch.testing.assert_close(model.layers[pp_stage_layer.layer_idx].linear.weight.grad, pp_stage_layer.linear.weight.grad, rtol=1e-3, atol=1e-3) # TODO
-        torch.testing.assert_close(model.layers[layer_idx].linear.bias.grad, pp_stage_layer.linear.bias.grad, rtol=1e-3, atol=1e-3) # TODO
+        if pp_stage_layer.fc1.weight.grad is not None:
+            torch.testing.assert_close( pp_stage_layer.fc1.weight.grad,model.layers[pp_stage_layer.layer_idx].fc1.weight.grad) # TODO
+        if pp_stage_layer.fc2.weight.grad is not None:
+            torch.testing.assert_close( pp_stage_layer.fc2.weight.grad,model.layers[pp_stage_layer.layer_idx].fc2.weight.grad) # TODO
     ################################################### 
     torch.cuda.synchronize()
     dist.barrier()

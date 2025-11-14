@@ -109,7 +109,7 @@ class PipelineStage(nn.Module):
 		Backward pass for this pipeline stage.
 		Computes gradients for assigned layers using received gradient from next stage.
 		"""
-		if input_tensor is not None: input_tensor.retain_grad()
+		if input_tensor is not None and input_tensor.requires_grad: input_tensor.retain_grad()
 		if output_tensor_grad is None:
 			#match gradients of mean()
 			output_tensor_grad = torch.ones_like(output_tensor, memory_format=torch.preserve_format)
